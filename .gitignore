@@ -1,0 +1,16 @@
+# Dependencias y compilación Hardhat
+node_modules/
+contrato/node_modules/
+contrato/artifacts/
+contrato/cache/
+contrato/typechain-types/
+contrato/coverage/
+contrato/coverage.json
+contrato/ignition/deployments/
+
+# Entorno y sistema operativo
+.env
+.env.*
+.DS_Store
+Thumbs.db
+__pycache__/

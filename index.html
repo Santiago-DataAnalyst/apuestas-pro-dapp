@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApuestasPro — Protocolo de Apuestas Descentralizadas</title>
+    <style>
+        :root {
+            --bg: #090c12;
+            --bg-elevated: #0f141e;
+            --surface: #131926;
+            --surface-2: #192131;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            --text: #f1f5f9;
+            --muted: #8b9bb4;
+            --accent: #eab308;
+            --accent-dim: rgba(234, 179, 8, 0.14);
+            --blue: #3b82f6;
+            --blue-dim: rgba(59, 130, 246, 0.15);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.15);
+            --green: #10b981;
+            --green-dim: rgba(16, 185, 129, 0.14);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.12), transparent),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .num { font-variant-numeric: tabular-nums; }
+
+        .navbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 32px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(9, 12, 18, 0.85);
+            backdrop-filter: blur(16px);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-mark {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #eab308, #ca8a04);
+            color: #090c12;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: var(--text);
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        .wallet-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--muted);
+        }
+
+        .pill.ok { color: #e2e8f0; border-color: rgba(16, 185, 129, 0.35); }
+        .pill.ok .dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .pill.admin { color: #fde047; border-color: rgba(234, 179, 8, 0.35); background: var(--accent-dim); }
+        .pill.err { color: #fca5a5; border-color: rgba(239, 68, 68, 0.35); }
+        .pill.err .dot { background: var(--red); }
+
+        button {
+            font-family: inherit;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 9px 15px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+        }
+
+        button:active:not(:disabled) { transform: translateY(1px); }
+        button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #090c12;
+            font-weight: 700;
+        }
+        .btn-primary:hover:not(:disabled) { background: #facc15; }
+
+        .btn-blue {
+            background: var(--blue-dim);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.35);
+        }
+        .btn-blue:hover:not(:disabled) { background: rgba(59, 130, 246, 0.25); color: #fff; }
+
+        .btn-red {
+            background: var(--red-dim);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.35);
+        }
+        .btn-red:hover:not(:disabled) { background: rgba(239, 68, 68, 0.25); color: #fff; }
+
+        .btn-green {
+            background: var(--green);
+            color: #042f2e;
+            font-weight: 700;
+        }
+        .btn-green:hover:not(:disabled) { background: #34d399; }
+
+        .btn-ghost {
+            background: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+        }
+        .btn-ghost:hover:not(:disabled) { border-color: var(--border-strong); background: var(--surface-2); }
+
+        .container {
+            max-width: 1160px;
+            margin: 28px auto;
+            padding: 0 24px 48px;
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #e2e8f0;
+        }
+
+        .subtext { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+        .matches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .match-item {
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .match-item:hover { border-color: var(--border-strong); }
+        .match-item.active {
+            border-color: var(--accent);
+            background: rgba(234, 179, 8, 0.05);
+        }
+
+        .match-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .match-name {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        .match-id {
+            color: var(--muted);
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .status-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .tag-live { background: var(--green-dim); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
+        .tag-done { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid var(--border); }
+
+        .pool-bar {
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+            display: flex;
+            margin: 10px 0;
+        }
+
+        .pool-a { background: var(--blue); transition: width 0.3s ease; }
+        .pool-b { background: var(--red); transition: width 0.3s ease; }
+
+        .pool-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .side-label { display: inline-flex; align-items: center; gap: 6px; }
+        .swatch { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+        .swatch-a { background: var(--blue); }
+        .swatch-b { background: var(--red); }
+
+        .form-group { margin-bottom: 14px; }
+        .form-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        input:focus { border-color: var(--accent); }
+
+        .chips {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .chip {
+            padding: 6px 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            background: var(--bg-elevated);
+            color: var(--muted);
+            border: 1px solid var(--border);
+        }
+        .chip:hover { color: var(--text); border-color: var(--border-strong); }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .my-bets-box {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .my-bets-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            color: var(--text);
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 18px 0;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 50;
+            max-width: 360px;
+        }
+
+        .toast {
+            padding: 11px 14px;
+            border-radius: 8px;
+            background: var(--surface-2);
+            border: 1px solid var(--border-strong);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+            font-size: 12.5px;
+            color: var(--text);
+            animation: slideIn 0.18s ease;
+        }
+
+        .toast.success { border-left: 3px solid var(--green); }
+        .toast.error { border-left: 3px solid var(--red); color: #fecaca; }
+        .toast.info { border-left: 3px solid var(--blue); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <div class="brand">
+        <div class="brand-mark">AP</div>
+        <div class="brand-text">
+            <span class="brand-title">ApuestasPro</span>
+            <span class="brand-sub">Contrato 0x5FbD...80aa3</span>
+        </div>
+    </div>
+    <div class="wallet-bar">
+        <span id="networkPill" class="pill"><span class="dot"></span>Red: Desconectada</span>
+        <span id="balancePill" class="pill num">Saldo: -- ETH</span>
+        <span id="rolePill" class="pill" style="display:none;"></span>
+        <button id="btnConectar" class="btn-primary">Conectar Wallet</button>
+    </div>
+</header>
+
+<main class="container">
+    <section class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">Mercados Activos</div>
+                <div class="subtext">Selecciona un evento para ver su liquidez y operar</div>
+            </div>
+            <button class="btn-ghost" onclick="cargarPartidos()" id="btnRefrescar">Actualizar</button>
+        </div>
+
+        <div id="matchesList" class="matches-list">
+            <div class="subtext">Conecta tu wallet para sincronizar los mercados del contrato inteligente.</div>
+        </div>
+    </section>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Boleto de Operación</div>
+                    <div id="selectedMatchLabel" class="subtext">Evento seleccionado: #1</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="partidoId">ID del Evento</label>
+                <input type="number" id="partidoId" class="num" value="1" min="1" onchange="onPartidoIdChange()">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="montoApuesta">Monto (ETH)</label>
+                <input type="number" id="montoApuesta" class="num" value="1.0" min="0.001" step="0.1">
+                <div class="chips">
+                    <button type="button" class="chip num" onclick="setMonto(0.1)">0.1 ETH</button>
+                    <button type="button" class="chip num" onclick="setMonto(0.5)">0.5 ETH</button>
+                    <button type="button" class="chip num" onclick="setMonto(1.0)">1.0 ETH</button>
+                    <button type="button" class="chip num" onclick="setMonto(5.0)">5.0 ETH</button>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-blue" onclick="apostar(1)">Apostar Local (1)</button>
+                <button class="btn-red" onclick="apostar(2)">Apostar Visitante (2)</button>
+            </div>
+
+            <div class="my-bets-box" id="myBetsBox">
+                Posición actual: conecta tu wallet.
+            </div>
+
+            <button class="btn-green" id="btnReclamar" style="width:100%; margin-top: 12px;" onclick="reclamarPremio()">
+                Reclamar Premio
+            </button>
+        </section>
+
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Administración</div>
+                    <div id="adminHint" class="subtext">Requiere wallet administradora</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="nuevoPartidoId">Nuevo ID</label>
+                <input type="number" id="nuevoPartidoId" class="num" value="1" min="1">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="nombrePartido">Nombre del Evento</label>
+                <input type="text" id="nombrePartido" placeholder="Ej: Atlas vs Chivas">
+            </div>
+
+            <button class="btn-primary" style="width:100%;" onclick="crearPartido()">Crear Evento</button>
+
+            <div class="divider"></div>
+
+            <div class="form-label" style="margin-bottom: 8px;">Liquidar Evento #<span id="resolverIdLabel" class="num">1</span></div>
+            <div class="btn-row">
+                <button class="btn-blue" onclick="resolverPartido(1)">Ganó Local (1)</button>
+                <button class="btn-red" onclick="resolverPartido(2)">Ganó Visitante (2)</button>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.10.0/ethers.umd.min.js"></script>
+<script>
+    const direccionContrato = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const abiContrato = [
+        "function admin() view returns (address)",
+        "function crearPartido(uint256 _id, string _nombre)",
+        "function apostar(uint256 _id, uint8 _opcion) payable",
+        "function resolver(uint256 _id, uint8 _ganador)",
+        "function reclamarPremio(uint256 _id)",
+        "function partidos(uint256 _id) view returns (string nombre, uint256 pozoA, uint256 pozoB, bool finalizado, uint8 ganador)",
+        "function aportes(uint256 _id, address _usuario, uint8 _opcion) view returns (uint256)"
+    ];
+
+    let proveedor = null;
+    let firmante = null;
+    let contrato = null;
+    let cuentaActual = null;
+    let adminContrato = null;
+
+    function toast(msg, type = "info", duration = 4500) {
+        const container = document.getElementById("toastContainer");
+        const el = document.createElement("div");
+        el.className = `toast ${type}`;
+        el.innerText = msg;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), duration);
+    }
+
+    function obtenerMensajeError(e) {
+        console.error("Detalle completo del error:", e);
+        return (
+            e?.info?.error?.data?.message ||
+            e?.info?.error?.message ||
+            e?.error?.message ||
+            e?.reason ||
+            e?.shortMessage ||
+            e?.message ||
+            String(e)
+        );
+    }
+
+    function corta(addr) {
+        return addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
+    }
+
+    function setMonto(val) {
+        document.getElementById("montoApuesta").value = val;
+    }
+
+    function seleccionarPartido(id) {
+        document.getElementById("partidoId").value = id;
+        onPartidoIdChange();
+    }
+
+    function onPartidoIdChange() {
+        const id = parseInt(document.getElementById("partidoId").value, 10) || 1;
+        document.getElementById("selectedMatchLabel").innerText = `Evento seleccionado: #${id}`;
+        document.getElementById("resolverIdLabel").innerText = id;
+        document.querySelectorAll(".match-item").forEach(el => {
+            el.classList.toggle("active", Number(el.dataset.id) === id);
+        });
+        actualizarMisApuestas(id);
+    }
+
+    async function conectar(silencioso = false) {
+        const netPill = document.getElementById("networkPill");
+        const balPill = document.getElementById("balancePill");
+        const rolePill = document.getElementById("rolePill");
+        const btn = document.getElementById("btnConectar");
+
+        if (!window.ethereum) {
+            netPill.className = "pill err";
+            netPill.innerHTML = `<span class="dot"></span>MetaMask no detectado`;
+            if (!silencioso) toast("Instala MetaMask en tu navegador para continuar.", "error");
+            return;
+        }
+
+        try {
+            if (silencioso) {
+                const cuentas = await window.ethereum.request({ method: "eth_accounts" });
+                if (!cuentas || cuentas.length === 0) return;
+            } else {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+            }
+
+            proveedor = new ethers.BrowserProvider(window.ethereum);
+            let red = await proveedor.getNetwork();
+
+            if (red.chainId !== 31337n) {
+                if (silencioso) {
+                    netPill.className = "pill err";
+                    netPill.innerHTML = `<span class="dot"></span>Red incorrecta (${red.chainId})`;
+                    return;
+                }
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: "0x7a69" }]
+                });
+                proveedor = new ethers.BrowserProvider(window.ethereum);
+                red = await proveedor.getNetwork();
+            }
+
+            const codigo = await proveedor.getCode(direccionContrato);
+            if (!codigo || codigo === "0x") {
+                netPill.className = "pill err";
+                netPill.innerHTML = `<span class="dot"></span>Contrato no desplegado`;
+                toast("No se encontró el contrato en Hardhat Local.", "error");
+                return;
+            }
+
+            firmante = await proveedor.getSigner();
+            cuentaActual = await firmante.getAddress();
+            contrato = new ethers.Contract(direccionContrato, abiContrato, firmante);
+
+            const saldoWei = await proveedor.getBalance(cuentaActual);
+            const saldoEth = Number(ethers.formatEther(saldoWei)).toFixed(4);
+            adminContrato = await contrato.admin();
+            const esAdmin = cuentaActual.toLowerCase() === adminContrato.toLowerCase();
+
+            netPill.className = "pill ok";
+            netPill.innerHTML = `<span class="dot"></span>Hardhat Local (31337)`;
+            balPill.innerText = `${saldoEth} ETH`;
+            btn.innerText = corta(cuentaActual);
+
+            rolePill.style.display = "inline-flex";
+            rolePill.className = esAdmin ? "pill admin" : "pill";
+            rolePill.innerText = esAdmin ? "Admin" : "Apostador";
+
+            document.getElementById("adminHint").innerText = esAdmin
+                ? "Permisos de administrador activos"
+                : `Solo el admin (${corta(adminContrato)}) puede crear o liquidar`;
+
+            await cargarPartidos();
+            if (!silencioso) toast("Wallet conectada correctamente.", "success");
+        } catch (e) {
+            if (!silencioso) toast("Error al conectar: " + obtenerMensajeError(e), "error");
+        }
+    }
+
+    async function cargarPartidos() {
+        if (!contrato) return;
+        const listEl = document.getElementById("matchesList");
+        const selectedId = parseInt(document.getElementById("partidoId").value, 10) || 1;
+
+        try {
+            const encontrados = [];
+            let maxId = 0;
+            for (let id = 1; id <= 15; id++) {
+                const p = await contrato.partidos(id);
+                if (p.nombre && p.nombre.length > 0) {
+                    encontrados.push({ id, p });
+                    maxId = id;
+                }
+            }
+
+            document.getElementById("nuevoPartidoId").value = maxId + 1;
+
+            if (encontrados.length === 0) {
+                listEl.innerHTML = `<div class="subtext">No hay eventos registrados. Crea el primero desde el panel de Administración.</div>`;
+                onPartidoIdChange();
+                return;
+            }
+
+            listEl.innerHTML = encontrados.map(({ id, p }) => {
+                const pozoA = Number(ethers.formatEther(p.pozoA));
+                const pozoB = Number(ethers.formatEther(p.pozoB));
+                const total = pozoA + pozoB;
+                const pctA = total > 0 ? Math.round((pozoA / total) * 100) : 50;
+                const pctB = 100 - pctA;
+                const multA = pozoA > 0 ? `x${(total / pozoA).toFixed(2)}` : "--";
+                const multB = pozoB > 0 ? `x${(total / pozoB).toFixed(2)}` : "--";
+                const tag = p.finalizado
+                    ? `<span class="status-tag tag-done">Finalizado · Ganó ${p.ganador === 1n ? "Local" : "Visitante"}</span>`
+                    : `<span class="status-tag tag-live">Abierto</span>`;
+
+                return `
+                    <div class="match-item ${id === selectedId ? "active" : ""}" data-id="${id}" onclick="seleccionarPartido(${id})">
+                        <div class="match-top">
+                            <span class="match-name"><span class="match-id">#${id}</span>${p.nombre}</span>
+                            ${tag}
+                        </div>
+                        <div class="pool-bar">
+                            <div class="pool-a" style="width:${pctA}%"></div>
+                            <div class="pool-b" style="width:${pctB}%"></div>
+                        </div>
+                        <div class="pool-stats num">
+                            <span class="side-label"><span class="swatch swatch-a"></span>Local: ${pozoA.toFixed(2)} ETH (${multA})</span>
+                            <span class="side-label"><span class="swatch swatch-b"></span>Visitante: ${pozoB.toFixed(2)} ETH (${multB})</span>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            onPartidoIdChange();
+        } catch (e) {
+            toast("Error cargando eventos: " + obtenerMensajeError(e), "error");
+        }
+    }
+
+    async function actualizarMisApuestas(id) {
+        const box = document.getElementById("myBetsBox");
+        if (!contrato || !cuentaActual) {
+            box.innerText = "Posición actual: conecta tu wallet.";
+            return;
+        }
+        try {
+            const p = await contrato.partidos(id);
+            const apA = await contrato.aportes(id, cuentaActual, 1);
+            const apB = await contrato.aportes(id, cuentaActual, 2);
+            const ethA = Number(ethers.formatEther(apA)).toFixed(3);
+            const ethB = Number(ethers.formatEther(apB)).toFixed(3);
+
+            let extra = "";
+            if (p.finalizado) {
+                const g = Number(p.ganador);
+                const miGanadora = g === 1 ? apA : apB;
+                extra = miGanadora > 0n
+                    ? `<div style="color:#34d399; margin-top:8px; font-weight:600;">Resultado favorable: premio disponible para reclamar.</div>`
+                    : `<div style="color:#8b9bb4; margin-top:8px;">Evento liquidado sin saldo pendiente por reclamar.</div>`;
+            }
+
+            box.innerHTML = `
+                <div>Tu posición en el evento <strong class="num">#${id}</strong></div>
+                <div class="my-bets-row num">
+                    <span>Local: <strong>${ethA} ETH</strong></span>
+                    <span>Visitante: <strong>${ethB} ETH</strong></span>
+                </div>
+                ${extra}
+            `;
+        } catch {
+            box.innerText = "No se pudo consultar tu posición.";
+        }
+    }
+
+    async function sincronizarNonceHardhat(errMsg) {
+        const match = errMsg.match(/Expected nonce to be \d+ but got (\d+)/i);
+        if (!match || !cuentaActual) return false;
+        const nonceMetaMask = Number(match[1]);
+        const hexNonce = "0x" + nonceMetaMask.toString(16);
+        try {
+            const resp = await fetch("http://127.0.0.1:8545", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    method: "hardhat_setNonce",
+                    params: [cuentaActual, hexNonce],
+                    id: 1
+                })
+            });
+            return resp.ok;
+        } catch {
+            return false;
+        }
+    }
+
+    async function ejecutarTx(mensajeCarga, fnTx, mensajeOk, reintentado = false) {
+        if (!contrato) {
+            toast("Primero conecta tu wallet de MetaMask.", "error");
+            return;
+        }
+        try {
+            toast(mensajeCarga, "info", 3500);
+            const tx = await fnTx();
+            toast("Transacción enviada. Esperando confirmación...", "info", 3500);
+            await tx.wait();
+            toast(mensajeOk, "success");
+            await conectar(true);
+        } catch (e) {
+            const msg = obtenerMensajeError(e);
+            if (!reintentado && /Nonce too high/i.test(msg)) {
+                const sincronizado = await sincronizarNonceHardhat(msg);
+                if (sincronizado) {
+                    toast("Nonce de MetaMask sincronizado automáticamente. Reintentando...", "info", 3500);
+                    return ejecutarTx(mensajeCarga, fnTx, mensajeOk, true);
+                }
+            }
+            toast("Error: " + msg, "error", 6000);
+        }
+    }
+
+    async function crearPartido() {
+        const id = parseInt(document.getElementById("nuevoPartidoId").value, 10);
+        const nombre = document.getElementById("nombrePartido").value.trim();
+        if (!id || id < 1) return toast("Ingresa un ID válido (>= 1).", "error");
+        if (!nombre) return toast("Escribe el nombre del evento.", "error");
+
+        await ejecutarTx(
+            `Creando evento #${id}...`,
+            () => contrato.crearPartido(id, nombre),
+            `Evento #${id} (${nombre}) creado en blockchain.`
+        );
+        document.getElementById("nombrePartido").value = "";
+        seleccionarPartido(id);
+    }
+
+    async function apostar(opcion) {
+        const id = parseInt(document.getElementById("partidoId").value, 10);
+        const monto = document.getElementById("montoApuesta").value;
+        if (!id || id < 1) return toast("Selecciona un ID de evento válido.", "error");
+        if (!monto || Number(monto) <= 0) return toast("Ingresa un monto mayor a 0 ETH.", "error");
+
+        const lado = opcion === 1 ? "Local" : "Visitante";
+        await ejecutarTx(
+            `Enviando apuesta de ${monto} ETH a ${lado}...`,
+            () => contrato.apostar(id, opcion, { value: ethers.parseEther(monto.toString()) }),
+            `Apuesta de ${monto} ETH a ${lado} confirmada.`
+        );
+    }
+
+    async function resolverPartido(ganador) {
+        const id = parseInt(document.getElementById("partidoId").value, 10);
+        if (!id || id < 1) return toast("Selecciona un ID de evento válido.", "error");
+        const lado = ganador === 1 ? "Local" : "Visitante";
+        await ejecutarTx(
+            `Liquidando evento #${id}...`,
+            () => contrato.resolver(id, ganador),
+            `Evento #${id} liquidado. Ganador: ${lado}.`
+        );
+    }
+
+    async function reclamarPremio() {
+        const id = parseInt(document.getElementById("partidoId").value, 10);
+        if (!id || id < 1) return toast("Selecciona un ID de evento válido.", "error");
+        await ejecutarTx(
+            `Reclamando premio del evento #${id}...`,
+            () => contrato.reclamarPremio(id),
+            `Premio del evento #${id} transferido a tu wallet.`
+        );
+    }
+
+    document.getElementById("btnConectar").addEventListener("click", () => conectar(false));
+
+    if (window.ethereum) {
+        window.ethereum.on("accountsChanged", () => conectar(true));
+        window.ethereum.on("chainChanged", () => window.location.reload());
+        conectar(true);
+    }
+</script>
+
+</body>
+</html>
